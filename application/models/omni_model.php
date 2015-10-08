@@ -14,8 +14,27 @@ class Omni_model extends CI_Model{
         //si $query no es array error de no array
         throw new Exception("Error los parametros suministrados no tenian el formato correcto", 01);
       }
+
+      //si $query viene en la version anterior
+      //tratando a trabla, capos y queryMods
+      if(isset($query['tabla'])){
+        $query['from'] = $query['tabla'];
+        unset($query['tabla']);
+      }
+      if(isset($query['campos'])){
+        $query['select'] = $query['campos'];
+        unset($query['campos']);
+      }
+      if(isset($query['queryMods'])){
+        foreach ($query['queryMods'] as $key => $value) {
+          $query[$key] = $value;
+        }
+      unset($query['queryMods']);
+      }
+
       //definir cual sera el tipo default de entrega, x Default: 'array'
       $tipo_entrega = (isset($query['result']))?$query['result']:'array';
+      unset($query['result']);
 
       //construccion de la consulta
       if( is_array($query) && isset($query['from']) ){
@@ -298,11 +317,22 @@ class Omni_model extends CI_Model{
         case 'compiled':
           $resultado = $this->db->get_compiled_select();
         break;
-        
-        default:
-           $resultado = $this->db->get();
+
+        case 'by_id':
+          $resultado = $this->db->get();
           $resultado = $resultado->result_array();
+          $id = $tipo_entrega;
+            var_dump($resultado); die();
+            foreach($resultado as $key=>$value){
+              $resultado[$value.$id] = $value;
+              $id++;
+            }//foreach
         break;
+/*        
+        default:
+          $resultado = $this->db->get();
+          $resultado = $resultado->result_array();
+        break; */
       }//fin switch tipo_entrega
     } catch (Exception $e) {  
         $resultado  =   $e->getMessage();
